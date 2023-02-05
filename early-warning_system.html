@@ -1,0 +1,35 @@
+<html>
+  <head>
+    <title>Fire Early-Warning System</title>
+    <link rel="stylesheet" type="text/css" href="early-warning_system.css">
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+      }
+      
+      #status {
+        margin-top: 20px;
+        font-size: 1.5em;
+        font-weight: bold;
+        color: green;
+      }
+    </style>    
+  </head>
+  <body>
+    <h1>Fire Early-Warning System</h1>
+    <p>The following is the current status of the fire early-warning system:</p>
+    <div id="status">
+      <p>Checking...</p>
+    </div>
+    <script>
+      function updateStatus() {
+        // Replace with code that retrieves the current fire status
+        var status = "No fire detected";
+        document.getElementById("status").innerHTML = "<p>Status: " + status + "</p>";
+      }
+      setInterval(updateStatus, 1000); // Update status every second
+    </script>
+    // To do: add a map with fire risk information.
+  </body>
+</html>
