@@ -14,7 +14,19 @@
         font-weight: bold;
         color: green;
       }
-    </style>    
+    </style>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+          integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+          crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+            integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+            crossorigin=""></script>
+    <style>
+      #map {
+        height: 500px;
+        width: 100%;
+      }
+    </style>
   </head>
   <body>
     <h1>Fire Early-Warning System</h1>
@@ -22,7 +34,14 @@
     <div id="status">
       <p>Checking...</p>
     </div>
+    <div id="map"></div>
     <script>
+      var map = L.map('map').setView([51.505, -0.09], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
+        maxZoom: 18
+      }).addTo(map);
+      
       function updateStatus() {
         // Replace with code that retrieves the current fire status
         var status = "No fire detected";
@@ -30,6 +49,6 @@
       }
       setInterval(updateStatus, 1000); // Update status every second
     </script>
-    // To do: add a map with fire risk information.
   </body>
 </html>
+//Also add fire risk layer onto map, using shades of red to indicate risk of fire.
