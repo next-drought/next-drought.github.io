@@ -1,10 +1,20 @@
 <!DOCTYPE html>
 <html>
 
+<a title="GDPR-compliant Web Analytics" href="https://clicky.com/101398452"><img alt="Clicky"
+        src="//static.getclicky.com/media/links/badge.gif" /></a>
+<script async src="//static.getclicky.com/101398452.js"></script>
+<noscript>
+    <p><img alt="Clicky" width="1" height="1" src="//in.getclicky.com/101398452ns.gif" /></p>
+</noscript>
+
 <head>
     <meta charset="UTF-8">
     <title>Temperature and Fire Risk Map</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css"
+        integrity="sha512-c4v4uz4x4e1kXZ+pYnY1vJtlyjKwP2b/2HJdNvJJtba5iuNp5kj5Z8cWYzgSd3w3qzKoH8E4W+0vQeLx0/LRQ=="
+        crossorigin="" />
     <style>
         #map {
             height: 900px;
@@ -17,6 +27,12 @@
     <div id="map"></div>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"
+        integrity="sha512-91j/8WlYTMJpNl/V1nzN7dHQkNVJNfqDW+AdicN+F2shX8uT6sy+bVr1uNOyR+V7pEJm1HHVgUu3ZUH+PYuYkg=="
+        crossorigin=""></script>
+    <script src="https://unpkg.com/georaster"></script>
+    <script src="https://unpkg.com/chroma-js"></script>
+    <script src="https://unpkg.com/georaster-layer-for-leaflet"></script>
     <script>
         $(document).ready(function () {
 
@@ -49,40 +65,79 @@
             });
 
             var map = L.map('map', {
-                center: [36.844461, 37.386475],
+                center: [30.6333, -97.6837],
                 zoom: 8,
                 layers: [osm, cities]
             });
 
-            var baseMaps = {
-                "OpenStreetMap": osm,
-                "ArcGIS": arcgis
-            };
+            var url_to_geotiff_file = "https://s3.us-east-2.amazonaws.com/thedynamicpacific.com/fuel.tif";
 
-            var overlayMaps = {
-                "Cities": cities
-            };
+            fetch(url_to_geotiff_file)
+                .then(response => response.arrayBuffer())
+                .then(arrayBuffer => {
+                    parseGeoraster(arrayBuffer).then(georaster => {
+                        const min = georaster.mins[0];
+                        const max = georaster.maxs[0];
+                        const range = georaster.ranges[0];
 
-            var layerControl = L.control.layers(baseMaps, overlayMaps).addTo(map);
+                        // available color scales can be found by running console.log(chroma.brewer);
+                        console.log(chroma.brewer);
+                        var scale = chroma.scale("Viridis");
 
-            var crownHill = L.marker([39.75, -105.09]).bindPopup('This is Crown Hill Park.');
-            var rubyHill = L.marker([39.68, -105.00]).bindPopup('This is Ruby Hill Park.');
-            var parks = L.layerGroup([crownHill, rubyHill]);
-            //var satellite = L.tileLayer(mapboxUrl, { id: 'mapbox/satellite-v9', tileSize: 512, zoomOffset: -1, attribution: '© Mapbox' });
-            var satellite = L.tileLayer("https://mt1.google.com/vt/lyrs=y\u0026x={x}\u0026y={y}\u0026z={z}", {
-                "attribution": "Google",
-                "detectRetina": false,
-                "maxNativeZoom": 22,
-                "maxZoom": 22,
-                "minZoom": 0,
-                "noWrap": false,
-                "opacity": 1,
-                "subdomains": "abc",
-                "tms": false
+                        var layer = new GeoRasterLayer({
+                            georaster: georaster,
+                            opacity: 0.7,
+                            pixelValuesToColorFn: function (pixelValues) {
+                                var pixelValue = pixelValues[
+                                    0]; // there's just one band in this raster
+
+                                // if there's zero wind, don't return a color
+                                if (pixelValue === 0) return null;
+
+                                // scale to 0 - 1 used by chroma
+                                var scaledPixelValue = (pixelValue - min) / range;
+
+                                var color = scale(scaledPixelValue).hex();
+
+                                return color;
+                            },
+                            resolution: 256
+                        });
+                        console.log("layer:", layer);
+                        layer.addTo(map);
+                        layerControl.addOverlay(layer, "GeoTiff");
+                        // map.fitBounds(layer.getBounds());
+                    });
+                    });
+
+                    var baseMaps = {
+                        "OpenStreetMap": osm,
+                        "ArcGIS": arcgis
+                    };
+
+                    var overlayMaps = {
+                        "Cities": cities
+                    };
+
+                    var layerControl = L.control.layers(baseMaps, overlayMaps).addTo(map);
+
+                    var crownHill = L.marker([39.75, -105.09]).bindPopup('This is Crown Hill Park.');
+                    var rubyHill = L.marker([39.68, -105.00]).bindPopup('This is Ruby Hill Park.');
+                    var parks = L.layerGroup([crownHill, rubyHill]);
+                    var satellite = L.tileLayer("https://mt1.google.com/vt/lyrs=y\u0026x={x}\u0026y={y}\u0026z={z}", {
+                        "attribution": "Google",
+                        "detectRetina": false,
+                        "maxNativeZoom": 22,
+                        "maxZoom": 22,
+                        "minZoom": 0,
+                        "noWrap": false,
+                        "opacity": 1,
+                        "subdomains": "abc",
+                        "tms": false
+                    }).addTo(map);
+                    layerControl.addBaseLayer(satellite, "Satellite");
+                    layerControl.addOverlay(parks, "Parks");
                 });
-            layerControl.addBaseLayer(satellite, "Satellite");
-            layerControl.addOverlay(parks, "Parks");
-        });
     </script>
 </body>
 
