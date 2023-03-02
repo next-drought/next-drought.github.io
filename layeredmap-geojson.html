@@ -41,9 +41,6 @@
                 attribution: '© OpenStreetMap'
             });
 
-            var arcgisUrl = 'https://services9.arcgis.com/RHVPKKiFTONKtxq3/arcgis/rest/services/NDFD_DailyTemperature_v1/FeatureServer';
-            var arcgis = L.tileLayer(arcgisUrl, { attribution: '© ArcGIS' });
-
             var cities = L.layerGroup();
             L.marker([39.61, -105.02]).bindPopup('This is Littleton, CO.').addTo(cities);
             L.marker([39.74, -104.99]).bindPopup('This is Denver, CO.').addTo(cities);
@@ -60,7 +57,7 @@
                         layer.bindPopup(feature.properties.dateAcquired);
                     }
                 });
-                layerControl.addOverlay(geojson, "Maxar Footprints");
+                layerControl.addOverlay(geojson, "Turkey Earthquake");
                 geojson.addTo(map);
             });
 
@@ -111,15 +108,14 @@
                     });
 
                     var baseMaps = {
-                        "OpenStreetMap": osm,
-                        "ArcGIS": arcgis
+                        "OpenStreetMap": osm
                     };
 
                     var overlayMaps = {
                         "Cities": cities
                     };
 
-                    var layerControl = L.control.layers(baseMaps, overlayMaps).addTo(map);
+                    var layerControl = L.control.layers(baseMaps).addTo(map);
 
                     var crownHill = L.marker([39.75, -105.09]).bindPopup('This is Crown Hill Park.');
                     var rubyHill = L.marker([39.68, -105.00]).bindPopup('This is Ruby Hill Park.');
