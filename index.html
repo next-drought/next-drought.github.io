@@ -110,7 +110,7 @@
                         });
                         console.log("layer:", layer);
                         layer.addTo(map);
-                        layerControl.addOverlay(layer, "GeoTiff");
+                        layerControl.addOverlay(layer, "Fuelmap");
                         // map.fitBounds(layer.getBounds());
                     });
                 });
@@ -131,9 +131,9 @@
                 "opacity": 1,
                 "subdomains": "abc",
                 "tms": false
-            }).addTo(map);
+            });
             layerControl.addBaseLayer(satellite, "Satellite");
-            // Legend div current issue: choose different icon.
+            // Legend div current issue: associate fuelmap and legend.
 
             // Create a custom control with a div element and an image
             var MyControl = L.Control.extend({
@@ -152,9 +152,9 @@
 
                     // Create a new image element for the legend
                     var legendImg = document.createElement('img');
-                    legendImg.src = 'legend.png';
+                    legendImg.src = 'file:///C:/Users/Chris/OneDrive/Desktop/fire/legend.png';
                     legendImg.alt = 'Legend';
-                    legendImg.style.maxWidth = '100%' ;
+                    legendImg.style.maxWidth = '100%';
                     legendImg.style.height = 'auto';
 
                     // Append the legend image to the scrollable container
@@ -165,10 +165,10 @@
 
                     // Create a new image element for the control icon
                     var iconImg = document.createElement('img');
-                    iconImg.src = 'Legend_Icon.png';
-                    iconImg.alt = 'Control icon';
-                    iconImg.style.width = '100px';
-                    iconImg.style.height = '100px';
+                    iconImg.src = 'Control_Icon.jpg';
+                    iconImg.alt = 'Legend_Icon.png';
+                    iconImg.style.width = '50px';
+                    iconImg.style.height = '50px';
 
                     // Append the icon image to the container element
                     container.appendChild(iconImg);
@@ -187,6 +187,20 @@
                         iconImg.style.display = 'block';
                     });
 
+                    // Show the control when the "layer" overlay is added to the map
+                    map.on('overlayadd', function (e) {
+                        if (e.name == 'Fuelmap') {
+                            container.style.display = 'block';
+                        }
+                    });
+
+                    // Hide the control when the "layer" overlay is removed from the map
+                    map.on('overlayremove', function (e) {
+                        if (e.name === 'Fuelmap') {
+                            container.style.display = 'none';
+                        }
+                    });
+
                     return container;
                 }
             });
@@ -194,6 +208,7 @@
             // Create an instance of the custom control and add it to the map
             var myControl = new MyControl();
             myControl.addTo(map);
+
 
 
         });
