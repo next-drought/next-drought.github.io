@@ -1,218 +1,316 @@
 <!DOCTYPE html>
-<html>
-
-<a title="GDPR-compliant Web Analytics" href="https://clicky.com/101398452"><img alt="Clicky"
-        src="//static.getclicky.com/media/links/badge.gif" /></a>
-<script async src="//static.getclicky.com/101398452.js"></script>
-<noscript>
-    <p><img alt="Clicky" width="1" height="1" src="//in.getclicky.com/101398452ns.gif" /></p>
-</noscript>
+<html class="no-js">
 
 <head>
-    <meta charset="UTF-8">
-    <title>Temperature and Fire Risk Map</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css"
-        integrity="sha512-c4v4uz4x4e1kXZ+pYnY1vJtlyjKwP2b/2HJdNvJJtba5iuNp5kj5Z8cWYzgSd3w3qzKoH8E4W+0vQeLx0/LRQ=="
-        crossorigin="" />
-    <style>
-        #map {
-            position: relative;
-            width: 100%;
-            height: 800px;
-        }
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Next Drought</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        .my-custom-control {
-            background-color: #fff;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            padding: 10px;
-        }
+    <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
 
-        .my-custom-control img {
-            max-width: 100%;
-            height: auto;
-        }
-    </style>
+    <!-- Fonts -->
+    <!-- Source Sans Pro -->
+    <link href="https://fonts.googleapis.com/css?family=Droid+Serif:400i|Source+Sans+Pro:300,400,600,700"
+        rel="stylesheet">
+
+    <!-- CSS -->
+
+    <!-- <link rel="stylesheet" href="css/bootstrap.min.css"> -->
+    <!-- Bootstrap CDN -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.5/css/bootstrap.min.css"
+        integrity="sha384-AysaV+vQoT3kOAXZkl02PThvDr8HYKPZhNT5h/CXfBThSRXQ6jW5DO2ekP5ViFdi" crossorigin="anonymous">
+
+
+    <link rel="stylesheet" href="css/themefisher-fonts.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/owl.carousel.css">
+    <link rel="stylesheet" href="css/animate.css">
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Responsive Stylesheet -->
+    <link rel="stylesheet" href="css/responsive.css">
 </head>
 
-<body>
-    <div id="map"></div>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/georaster"></script>
-    <script src="https://unpkg.com/chroma-js"></script>
-    <script src="https://unpkg.com/georaster-layer-for-leaflet"></script>
-    <script>
-        $(document).ready(function () {
+<body id="body">
 
-            var osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                attribution: '© OpenStreetMap'
-            });
+    <div id="preloader">
+        <div class="book">
+            <div class="book__page"></div>
+            <div class="book__page"></div>
+            <div class="book__page"></div>
+        </div>
+    </div>
 
-            var map = L.map('map', {
-                center: [30.6333, -97.6837],
-                zoom: 10,
-                layers: [osm]
-            });
+    <!-- 
+	    Header start
+	    ==================== -->
+    <div class="container">
+        <nav class="navbar navbar-fixed-top  navigation " id="top-nav">
+            <a class="navbar-brand" href="#">
+                <img src="images/logo.png" alt="">
+            </a>
 
+            <button class="navbar-toggler hidden-lg-up float-lg-right" type="button" data-toggle="collapse"
+                data-target="#navbarResponsive">
+                <i class="tf-ion-android-menu"></i>
+            </button>
+            <div class="collapse navbar-toggleable-md" id="navbarResponsive">
+                <ul class="nav navbar-nav menu float-lg-right" id="top-nav">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="#">Next Drought</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="fireearlywarning.html">FIRE WARNING</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="mapcompare.html">IMAGE DISCOVERY</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="fuelmap.html">FUEL MAP</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </div>
 
-            // Location marker
-            var locationOverlay = L.layerGroup();
-
-            navigator.geolocation.getCurrentPosition(function (position) {
-                var lat = position.coords.latitude;
-                var lng = position.coords.longitude;
-
-                var marker = L.marker([lat, lng]).addTo(locationOverlay);
-            });
-
-            var overlayMaps = {
-                "My Location": locationOverlay
-            };
-
-
-            // Geotiff
-
-            var url_to_geotiff_file = "https://s3.us-east-2.amazonaws.com/thedynamicpacific.com/fuel.tif";
-
-            fetch(url_to_geotiff_file)
-                .then(response => response.arrayBuffer())
-                .then(arrayBuffer => {
-                    parseGeoraster(arrayBuffer).then(georaster => {
-                        const min = georaster.mins[0];
-                        const max = georaster.maxs[0];
-                        const range = georaster.ranges[0];
-
-                        // available color scales can be found by running console.log(chroma.brewer);
-                        console.log(chroma.brewer);
-                        var scale = chroma.scale("Viridis");
-
-                        var layer = new GeoRasterLayer({
-                            georaster: georaster,
-                            opacity: 0.7,
-                            pixelValuesToColorFn: function (pixelValues) {
-                                var pixelValue = pixelValues[
-                                    0]; // there's just one band in this raster
-
-                                // if there's zero wind, don't return a color
-                                if (pixelValue === 0) return null;
-
-                                // scale to 0 - 1 used by chroma
-                                var scaledPixelValue = (pixelValue - min) / range;
-
-                                var color = scale(scaledPixelValue).hex();
-
-                                return color;
-                            },
-                            resolution: 256
-                        });
-                        console.log("layer:", layer);
-                        layer.addTo(map);
-                        layerControl.addOverlay(layer, "Fuelmap");
-                        // map.fitBounds(layer.getBounds());
-                    });
-                });
-
-            var baseMaps = {
-                "OpenStreetMap": osm
-            };
-
-            var layerControl = L.control.layers(baseMaps, overlayMaps).addTo(map);
-
-            var satellite = L.tileLayer("https://mt1.google.com/vt/lyrs=y\u0026x={x}\u0026y={y}\u0026z={z}", {
-                "attribution": "Google",
-                "detectRetina": false,
-                "maxNativeZoom": 22,
-                "maxZoom": 22,
-                "minZoom": 0,
-                "noWrap": false,
-                "opacity": 1,
-                "subdomains": "abc",
-                "tms": false
-            });
-            layerControl.addBaseLayer(satellite, "Satellite");
-            // Legend div current issue: associate fuelmap and legend.
-
-            // Create a custom control with a div element and an image
-            var MyControl = L.Control.extend({
-                options: {
-                    position: 'bottomright'
-                },
-
-                onAdd: function (map) {
-                    var container = L.DomUtil.create('div', 'my-custom-control my-custom-control-small');
-
-                    // Create a new div element for the scrollable container
-                    var scrollableDiv = document.createElement('div');
-                    scrollableDiv.style.height = '400px';
-                    scrollableDiv.style.overflowY = 'auto';
-                    scrollableDiv.style.display = 'none';
-
-                    // Create a new image element for the legend
-                    var legendImg = document.createElement('img');
-                    legendImg.src = './legend.png';
-                    legendImg.alt = 'Legend';
-                    legendImg.style.maxWidth = '100%';
-                    legendImg.style.height = 'auto';
-
-                    // Append the legend image to the scrollable container
-                    scrollableDiv.appendChild(legendImg);
-
-                    // Append the scrollable container to the container element
-                    container.appendChild(scrollableDiv);
-
-                    // Create a new image element for the control icon
-                    var iconImg = document.createElement('img');
-                    iconImg.src = './Control_Icon.jpg';
-                    iconImg.alt = 'icon.jpeg';
-                    iconImg.style.width = '100px';
-                    iconImg.style.height = '100px';
-
-                    // Append the icon image to the container element
-                    container.appendChild(iconImg);
-
-                    // Add an event listener to show the legend image when the control is hovered over
-                    container.addEventListener('mouseover', function () {
-                        scrollableDiv.style.display = 'block';
-                        container.classList.remove('my-custom-control-small');
-                        iconImg.style.display = 'none';
-                    });
-
-                    // Add an event listener to hide the legend image when the control is no longer hovered over
-                    container.addEventListener('mouseout', function () {
-                        scrollableDiv.style.display = 'none';
-                        container.classList.add('my-custom-control-small');
-                        iconImg.style.display = 'block';
-                    });
-
-                    // Show the control when the "layer" overlay is added to the map
-                    map.on('overlayadd', function (e) {
-                        if (e.name == 'Fuelmap') {
-                            container.style.display = 'block';
-                        }
-                    });
-
-                    // Hide the control when the "layer" overlay is removed from the map
-                    map.on('overlayremove', function (e) {
-                        if (e.name === 'Fuelmap') {
-                            container.style.display = 'none';
-                        }
-                    });
-
-                    return container;
-                }
-            });
-
-            // Create an instance of the custom control and add it to the map
-            var myControl = new MyControl();
-            myControl.addTo(map);
+    <section class="hero-area bg-1">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-7">
+                    <div class="block">
+                        <h1 class="wow fadeInDown" data-wow-delay="0.3s" data-wow-duration=".2s">Predicting Next Drought...</h1>
+                        <div class="wow fadeInDown" data-wow-delay="0.7s" data-wow-duration=".7s">
+                            <a class="btn btn-home" href="#about" role="button">Act Up In</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-5 wow zoomIn">
+                    <div class="block">
+                        <div class="counter text-center">
+                            <ul id="countdown_dashboard">
+                                <li>
+                                    <div class="dash days_dash">
+                                        <div class="digit">0</div>
+                                        <div class="digit">0</div>
+                                        <div class="digit">0</div>
+                                        <span class="dash_title">Days</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="dash hours_dash">
+                                        <div class="digit">0</div>
+                                        <div class="digit">0</div>
+                                        <span class="dash_title">Hours</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="dash minutes_dash">
+                                        <div class="digit">0</div>
+                                        <div class="digit">0</div>
+                                        <span class="dash_title">Minutes</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="dash seconds_dash">
+                                        <div class="digit">0</div>
+                                        <div class="digit">0</div>
+                                        <span class="dash_title">Seconds</span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- .row close -->
+        </div><!-- .container close -->
+    </section><!-- header close -->
 
 
 
-        });
-    </script>
+    <!-- 
+        About start
+        ==================== -->
+    <section class="section about bg-gray" id="about">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-7 col-sm-12 wow fadeInLeft">
+                    <div class="content">
+                        <div class="sub-heading">
+                            <h3>Dealing with Next Drought in a better way</h3>
+                        </div>
+                        <p><strong>Next Drought</strong> dedicates to assisting communities in
+                            effectively managing and mitigating the risks associated with drought-induced wildfires.
+                            Recognizing the increasing severity of drought conditions and their consequential impact on
+                            wildfire intensity and severity </p>
+                        <p>    
+                            <strong>Next Drought</strong> focuses on leveraging emerging techniques and
+                            technology and provides insights into current drought
+                            forecasts and trends. It also offers an array of drought and wildfire resources, guidance on
+                            drought resilience, water conservation strategies, and practical tips for wildfire
+                            prevention. By integrating scientific research and practical strategies
+                        </p>
+                        <p>
+                            <strong>Next
+                                Drought</strong> empowers communities, emergency managers, and individuals with the
+                            knowledge and tools to proactively address the challenges posed by droughts and reduce the
+                            risk of devastating wildfires.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-5 col-sm-12 wow fadeInLeft" data-wow-delay="0.3s">
+                    <div class="about-slider">
+                        <img src="images/about/11.jpg" alt="">
+                        <img src="images/about/22.jpg" alt="">
+                        <img src="images/about/33.jpg" alt="">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section><!-- #about close -->
+    <!-- 
+        About start
+        ==================== -->
+
+    <!-- 
+        Service start
+        ==================== -->
+    <section id="service" class="service section">
+        <div class="container">
+            <div class="col-sm-6 col-md-3 wow fadeInLeft" data-wow-delay="0.6s">
+                <div class="block">
+                    <i class="tf-anchor2"></i>
+                    <h3>Next Drought Prediction</h3>
+                    <p>Lorem ipsum dolor sit amet, con-sectetur adipisicing elit, sed do eiusmod tempor incididunt ut
+                    </p>
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-3 wow fadeInLeft" data-wow-delay="0.9s">
+                <div class="block">
+                    <i class="tf-globe"></i>
+                    <h3>Wildfire Prediction</h3>
+                    <p>Lorem ipsum dolor sit amet, con-sectetur adipisicing elit, sed do eiusmod tempor incididunt ut
+                    </p>
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-3 wow fadeInLeft">
+                <div class="block">
+                    <i class="tf-strategy"></i>
+                    <h3>Drought Analysis</h3>
+                    <p>Lorem ipsum dolor sit amet, con-sectetur adipisicing elit, sed do eiusmod tempor incididunt ut
+                    </p>
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-3 wow fadeInLeft" data-wow-delay="0.3s">
+                <div class="block">
+                    <i class="tf-circle-compass"></i>
+                    <h3>Community WildFire Awareness</h3>
+                    <p>Lorem ipsum dolor sit amet, con-sectetur adipisicing elit, sed do eiusmod tempor incididunt ut
+                    </p>
+                </div>
+            </div>
+        </div>
+        </div><!-- .container close -->
+    </section><!-- #service close -->
+
+    <section class="call-to-action section">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12 wow text-center">
+                    <div class="block">
+                        <h2>Subscribe to our mailing list</h2>
+                        <div class="col-lg-6 offset-lg-3">
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Your Email Address Here">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-default btn-subscription" type="button">Subscribe</button>
+                                </span>
+                            </div><!-- /input-group -->
+                        </div><!-- /.col-lg-6 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section><!-- #call-to-action close -->
+
+    <!-- 
+        Contact start
+        ==================== -->
+    <section id="contact" class="section contact">
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-12 col-sm-12 col-md-12">
+                    <div class="block">
+                        <div class="heading wow fadeInUp">
+                            <h2>Want to Know More</h2>
+                        </div>
+                    </div>
+
+                    <div class="col-xs-12 col-sm-12 col-md-6 offset-md-3 wow fadeInUp" data-wow-delay="0.3s">
+                        <div class="form-group">
+                            <form action="#" method="post" id="contact-form">
+                                <div class="input-field">
+                                    <input type="text" class="form-control" placeholder="Your Name" name="name">
+                                </div>
+                                <div class="input-field">
+                                    <input type="email" class="form-control" placeholder="Email Address" name="email">
+                                </div>
+                                <div class="input-field">
+                                    <textarea class="form-control" placeholder="Your Message" rows="3"
+                                        name="message"></textarea>
+                                </div>
+                                <button class="btn btn-send" type="submit">Send me</button>
+                            </form>
+
+                            <div id="success">
+                                <p>Your Message was sent successfully</p>
+                            </div>
+                            <div id="error">
+                                <p>Your Message was not sent successfully</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </section>
+
+    <section clas="wow fadeInUp">
+        <div class="map-wrapper">
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="block">
+                        <p>Copyright &copy; <a href="http://www.next-drought.org">Next Drought</a>| All right reserved.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+
+    <!-- Js -->
+    <script src="js/vendor/jquery-2.1.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.3.7/js/tether.min.js"
+        integrity="sha384-XTs3FgkjiBgo8qjEjBk0tGmf3wPrWtA6coPfQDfFEY8AnYJwjalXCiosYRBIBZX8"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.5/js/bootstrap.min.js"
+        integrity="sha384-BLiI7JTZm+JWlgKa0M0kGRpJbF2J8q+qreVrKBC47e3K6BW78kGLrCkeRX6I9RoK"
+        crossorigin="anonymous"></script>
+    <script src="js/vendor/modernizr-2.6.2.min.js"></script>
+    <script src="js/jquery.lwtCountdown-1.0.js"></script>
+    <script src="js/owl.carousel.min.js"></script>
+    <script src="js/jquery.validate.min.js"></script>
+    <script src="js/jquery.form.js"></script>
+    <script src="js/jquery.nav.js"></script>
+    <script src="js/wow.min.js"></script>
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js" integrity="sha384-3ceskX3iaEnIogmQchP8opvBy3Mi7Ce34nWjpBIwVTHfGYWQS9jwHDVRnpKKHJg7" crossorigin="anonymous"></script> -->
+    <script src="js/main.js"></script>
+
 </body>
 
 </html>
